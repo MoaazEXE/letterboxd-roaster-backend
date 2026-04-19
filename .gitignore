@@ -15,6 +15,9 @@ dist-ssr
 # Claude Code
 .claude/
 
+# Environment variables
+.env
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -25,3 +28,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Data files
+*.pkl
+*.json
