@@ -14,7 +14,8 @@ persona_map={ "casual":52960,
              "enthusiast":72315,
               "critic":80974} 
 
-movies_df['title_lower']=movies_df['title'].str.lower()
+movies_df_lower = movies_df.copy()
+movies_df_lower['title_lower'] = movies_df_lower['title'].str.lower()
 
 #get_candidates(title) function
 def get_candidates(title, n=20):
@@ -23,25 +24,38 @@ def get_candidates(title, n=20):
     if title not in movies_df['title_lower'].values:
         raise ValueError("Movie not found")
     
-    idx = movies_df[movies_df['title_lower'] == title].index[0]
-    sim_scores = list(enumerate(cosine_sim[idx]))
-    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
-    sim_scores = sim_scores[1:n+1]
+    idx = movies_df_lower[movies_df_lower['title_lower'] == title].index[0]
+
+    top_indices = cosine_sim['indices'][idx][:n]
+    top_scores = cosine_sim['scores'][idx][:n]
+
     results=[]
     
-    for i in sim_scores:
-        movie=movies_df.iloc[i[0]]
+    for movie_idx, score in zip(top_indices, top_scores):
+        movie = movies_df.iloc[movie_idx]
         results.append((movie['title'], movie['movieId']))
-    
+
     return results
 
 #rerank_with_svd(candidates, user_id) function
 def rerank_with_svd(candidates, user_id):
     results=[]
 
-    for tile, movie_id in candidates:
+    for title, movie_id in candidates:
         pred=svd_model.predict(user_id, movie_id)
         results.append((title, movie_id, pred.est))
     
     results=sorted(results, key=lambda x: x[2], reverse=True)
     return results[:5]
+
+#testing
+print("models.py running")
+if __name__ == "__main__":
+    movie = "Interstellar"
+    user_id = persona_map["enthusiast"]
+
+    candidates = get_candidates(movie)
+    print("Candidates (top 5):", candidates[:5])
+
+    top5 = rerank_with_svd(candidates, user_id)
+    print("Top 5:", top5)
