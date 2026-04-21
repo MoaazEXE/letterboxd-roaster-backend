@@ -1,7 +1,8 @@
 fastapi
 uvicorn
 scikit-learn
-scikit-surprise
+scikit-surprise==1.1.4
+numpy<2
 pandas
 google-generativeai
 python-dotenv
