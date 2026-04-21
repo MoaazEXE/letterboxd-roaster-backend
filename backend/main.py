@@ -14,6 +14,9 @@ load_dotenv()
 from backend import models
 from backend import llm
 
+
+
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("letterboxd_roaster")
 
