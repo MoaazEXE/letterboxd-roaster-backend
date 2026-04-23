@@ -11,8 +11,8 @@ load_dotenv()
 # import project modules (models.py provided by teammate)
 # models must provide: get_candidates(title) -> list[(title, movieId)]
 # and rerank_with_svd(candidates, user_id) -> list[(title, movieId, predicted_rating)]
-from backend import models
-from backend import llm
+from . import models
+from . import llm
 
 
 
