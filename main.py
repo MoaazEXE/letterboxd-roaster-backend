@@ -40,3 +40,4 @@ def recommend(title: str, persona: str):
 
     except Exception as e: #handle errors (movie not found, invalid persona)
         return {"error": str(e)}
+n
