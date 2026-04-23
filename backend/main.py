@@ -23,7 +23,7 @@ logger = logging.getLogger("letterboxd_roaster")
 app = FastAPI(title="Letterboxd Roaster API")
 
 # Allow frontend on localhost:3000 by default. Adjust ALLOWED_ORIGINS in .env if needed.
-ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:5173").split(",")
 
 app.add_middleware(
     CORSMiddleware,
@@ -80,3 +80,13 @@ async def recommend(movie: str = Query(..., min_length=1), persona: str = Query(
         recommendations = [{"title": t[0], "predicted_rating": round(float(t[2]), 2), "roast": ""} for t in top5]
 
     return {"recommendations": recommendations}
+
+# --- AUTHENTICATION ROUTES (Phase 5) ---
+# TODO: Add login/signup endpoints here in Phase 5
+# @app.post("/auth/login")
+# async def login(): ...
+# ----------------------------------------
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("backend.main:app", host="0.0.0.0", port=8000, reload=True)
