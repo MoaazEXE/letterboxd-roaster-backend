@@ -21,9 +21,27 @@ def _load_pickle(filename: str):
             f"Failed to load {filename} from {path}: {e}"
         )
 
-svd_model = _load_pickle("svd_model.pkl") #filtering model 
-cosine_sim = _load_pickle("cosine_sim.pkl") #content-based similarity data
-movies_df = _load_pickle("movies_df.pkl") #movie dataset
+svd_model = None
+cosine_sim = None
+movies_df = None
+
+_models_loaded = False
+
+def _load_models():
+    global svd_model, cosine_sim, movies_df, _models_loaded
+
+    if not _models_loaded:
+        print("Loading models...")
+        svd_model = _load_pickle("svd_model.pkl")
+        print("svd loaded")
+
+        cosine_sim = _load_pickle("cosine_sim.pkl")
+        print("cosine sim loaded")
+
+        movies_df = _load_pickle("movies_df.pkl")
+        print("movies df loaded")
+
+        _models_loaded = True
 
 # 2. persona → userId mapping
 _persona_map = {
@@ -69,13 +87,17 @@ def _normalise_title(title: str) -> str: #standardise movie title for matching
     return t.strip()
 
 
-# Map normalised title → df row index
-_title_lookup: dict[str, int] = {}
-for _idx, _row in movies_df.iterrows():
-    _norm = _normalise_title(_row["title"])
-    # first entry wins (duplicates are rare; keeps deterministic behaviour)
-    if _norm not in _title_lookup:
-        _title_lookup[_norm] = _idx
+_title_lookup = None
+
+def _build_title_lookup():
+    global _title_lookup
+
+    if _title_lookup is None:
+        _title_lookup = {}
+        for _idx, _row in movies_df.iterrows():
+            _norm = _normalise_title(_row["title"])
+            if _norm not in _title_lookup:
+                _title_lookup[_norm] = _idx
 
 
 
@@ -85,6 +107,8 @@ def get_candidates(title: str, n: int = 20) -> list[tuple[str, int, float]]:
     # title: Movie title (case-insensitive, year and article optional).
     # n: Number of candidates to return (default 20).
     # return list of (title, movieId, similarity_score) tuples, sorted descending by similarity.
+    _load_models()
+    _build_title_lookup()
 
     if title is None:
         raise ValueError("Title cannot be None")
@@ -108,7 +132,7 @@ def get_candidates(title: str, n: int = 20) -> list[tuple[str, int, float]]:
 
     #if still not found, raise error
     if idx is None:
-        raise ValueError(f"Movie '{title}' not found in database")
+        raise ValueError("Movie not found. Please check the title and try again.")
 
     #get top similiar movies
     top_indices = cosine_sim["indices"][idx][:n]
@@ -152,19 +176,22 @@ def rerank_with_svd(
 if __name__ == "__main__":
     print("models.py running")
 
-    movie = "Interstellar (2014)"
+    movie = "Interstellar"
     user_id = get_user_id("enthusiast")
 
     #get similiar movies
     candidates = get_candidates(movie)
 
-    print("Candidates (top 5):\n", candidates[:5])
-    for i, (title, movie_id, score) in enumerate(candidates[:5], start=1):
-        print(f"{i}. {title} | ID: {movie_id} | Similarity: {score:.3f}")
+    if isinstance(candidates, str):
+        print(candidates)  # error message
+    else:
+        print("Candidates (top 5):\n", candidates[:5])
+        for i, (title, movie_id, score) in enumerate(candidates[:5], start=1):
+            print(f"{i}. {title} | ID: {movie_id} | Similarity: {score:.3f}")
 
-    #rerank using SVD
-    print("\nTop 5 Recommendations:")
-    top5 = rerank_with_svd(candidates, user_id)
+        #rerank using SVD
+        print("\nTop 5 Recommendations:")
+        top5 = rerank_with_svd(candidates, user_id)
 
-    for i, (title, movie_id, rating) in enumerate(top5, start=1):
-        print(f"{i}. {title} | ID: {movie_id} | Predicted Rating: {rating:.2f}")
+        for i, (title, movie_id, rating) in enumerate(top5, start=1):
+            print(f"{i}. {title} | ID: {movie_id} | Predicted Rating: {rating:.2f}")
