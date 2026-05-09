@@ -17,10 +17,10 @@ dist-ssr
 
 # Environment variables
 .env
+.env.template
 
 # Editor directories and files
 .vscode/*
-!.vscode/extensions.json
 .idea
 .DS_Store
 *.suo
@@ -32,4 +32,8 @@ dist-ssr
 # Data files
 *.pkl
 *.json
-.env.template
+
+# Python
+venv/
+.venv/
+__pycache__/

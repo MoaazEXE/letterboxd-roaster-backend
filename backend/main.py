@@ -34,6 +34,16 @@ app.add_middleware(
 )
 
 
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
+
+
+@app.get("/")
+def root():
+    return {"message": "backend is running"}
+
+
 PERSONA_MAP = {
     "casual": 52960,
     "enthusiast": 72315,

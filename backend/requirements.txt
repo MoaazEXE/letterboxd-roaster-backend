@@ -5,3 +5,5 @@ google-genai
 pandas
 scikit-surprise
 scikit-learn
+requests
+numpy<2
