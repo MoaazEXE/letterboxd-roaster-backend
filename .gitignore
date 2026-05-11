@@ -15,9 +15,10 @@ dist-ssr
 # Claude Code
 .claude/
 
-# Environment variables
+# Environment variables (template is committed so contributors know what to set)
 .env
-.env.template
+.env.local
+.env.*.local
 
 # Editor directories and files
 .vscode/*
@@ -29,11 +30,12 @@ dist-ssr
 *.sln
 *.sw?
 
-# Data files
+# Data files (model artefacts are local-only — see README for how to obtain them)
 *.pkl
-*.json
 
 # Python
 venv/
 .venv/
 __pycache__/
+*.egg-info/
+.pytest_cache/
