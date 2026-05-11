@@ -1,9 +1,11 @@
 fastapi
-uvicorn
-scikit-learn
-scikit-surprise==1.1.4
-numpy<2
-pandas
-google-generativeai
+uvicorn[standard]
+pydantic
+pydantic-settings
 python-dotenv
+google-genai
+pandas
+scikit-surprise
+scikit-learn
+numpy<2
 requests
