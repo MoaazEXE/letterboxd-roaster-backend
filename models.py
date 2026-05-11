@@ -177,7 +177,7 @@ if __name__ == "__main__":
     print("models.py running")
 
     movie = "Interstellar"
-    user_id = get_user_id("enthusiast")
+    user_id = get_user_id("persona")
 
     #get similiar movies
     candidates = get_candidates(movie)
