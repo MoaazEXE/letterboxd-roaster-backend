@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import re
 from contextlib import asynccontextmanager
 
 import httpx
@@ -31,21 +32,30 @@ TMDB_SEARCH_URL = "https://api.themoviedb.org/3/search/movie"
 TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500"
 
 
+def _clean_title_for_tmdb(raw: str) -> str:
+    # Strip year: "Inception (2010)" → "Inception"
+    title = re.sub(r"\s*\(\d{4}\)\s*$", "", raw).strip()
+    # Fix "Prestige, The" → "The Prestige"
+    title = re.sub(r"^(.+),\s*(The|A|An)\s*$", r"\2 \1", title, flags=re.IGNORECASE)
+    return title
+
+
 async def fetch_poster_url(title: str, api_key: str | None) -> str | None:
     if not api_key:
         return None
+    query = _clean_title_for_tmdb(title)
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
             resp = await client.get(
                 TMDB_SEARCH_URL,
-                params={"api_key": api_key, "query": title, "include_adult": "false"},
+                params={"api_key": api_key, "query": query, "include_adult": "false"},
             )
             resp.raise_for_status()
             results = resp.json().get("results", [])
             if results and results[0].get("poster_path"):
                 return f"{TMDB_IMAGE_BASE}{results[0]['poster_path']}"
     except Exception:
-        logger.warning("TMDB lookup failed for: %s", title)
+        logger.warning("TMDB lookup failed for: %s (cleaned: %s)", title, query)
     return None
 
 
