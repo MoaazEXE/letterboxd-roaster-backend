@@ -1,0 +1,17 @@
+.git
+.gitignore
+.env
+.env.*
+!.env.template
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+*.egg-info/
+README.md
+INTEGRATION.md
+DEPLOYMENT.md
+scripts/
+# Model artefacts are provided at runtime, not baked into the image.
+backend/models/
