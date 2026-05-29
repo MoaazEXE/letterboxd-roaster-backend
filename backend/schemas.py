@@ -18,6 +18,7 @@ class Recommendation(BaseModel):
     movie_id: int = Field(..., alias="movieId")
     predicted_rating: float
     roast: str
+    poster_url: str | None = None
 
     model_config = {"populate_by_name": True}
 

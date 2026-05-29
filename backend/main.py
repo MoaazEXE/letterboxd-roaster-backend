@@ -2,6 +2,7 @@ import asyncio
 import logging
 from contextlib import asynccontextmanager
 
+import httpx
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query
 from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
@@ -25,6 +26,27 @@ from .schemas import (
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("letterboxd_roaster")
+
+TMDB_SEARCH_URL = "https://api.themoviedb.org/3/search/movie"
+TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500"
+
+
+async def fetch_poster_url(title: str, api_key: str | None) -> str | None:
+    if not api_key:
+        return None
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            resp = await client.get(
+                TMDB_SEARCH_URL,
+                params={"api_key": api_key, "query": title, "include_adult": "false"},
+            )
+            resp.raise_for_status()
+            results = resp.json().get("results", [])
+            if results and results[0].get("poster_path"):
+                return f"{TMDB_IMAGE_BASE}{results[0]['poster_path']}"
+    except Exception:
+        logger.warning("TMDB lookup failed for: %s", title)
+    return None
 
 
 @asynccontextmanager
@@ -75,6 +97,7 @@ async def recommend(
     recommender: Recommender = Depends(get_recommender),
     roast_client: RoastClient = Depends(get_roast_client),
 ) -> RecommendResponse:
+    settings = get_settings()
     user_id = PERSONA_TO_USER_ID[persona]
 
     try:
@@ -91,8 +114,9 @@ async def recommend(
         logger.exception("SVD rerank failed")
         raise HTTPException(status_code=500, detail="Error during re-ranking") from e
 
-    roasts = await asyncio.gather(
-        *(roast_client.generate_roast(movie, title, pred) for title, _, pred in top5)
+    roasts, poster_urls = await asyncio.gather(
+        asyncio.gather(*(roast_client.generate_roast(movie, title, pred) for title, _, pred in top5)),
+        asyncio.gather(*(fetch_poster_url(title, settings.tmdb_api_key) for title, _, _ in top5)),
     )
 
     recommendations = [
@@ -101,8 +125,9 @@ async def recommend(
             movieId=movie_id,
             predicted_rating=round(pred, 2),
             roast=roast,
+            poster_url=poster_url,
         )
-        for (title, movie_id, pred), roast in zip(top5, roasts)
+        for (title, movie_id, pred), roast, poster_url in zip(top5, roasts, poster_urls)
     ]
 
     return RecommendResponse(

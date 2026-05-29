@@ -17,12 +17,15 @@ class Settings(BaseSettings):
     )
 
     gemini_api_key: str | None = None
-    gemini_model: str = "gemini-flash-latest"
+    gemini_model: str = "gemini-2.0-flash"
+
+    tmdb_api_key: str | None = None
 
     allowed_origins: list[str] = Field(
         default_factory=lambda: [
             "http://localhost:3000",
             "http://localhost:5173",
+            "http://127.0.0.1:5173",
         ]
     )
 

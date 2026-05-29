@@ -2,10 +2,9 @@ fastapi
 uvicorn[standard]
 pydantic
 pydantic-settings
-python-dotenv
 google-genai
+httpx
 pandas
 scikit-surprise
 scikit-learn
 numpy<2
-requests
