@@ -37,3 +37,12 @@ dist-ssr
 venv/
 .venv/
 __pycache__/
+
+# Local env, caches and AI tooling files
+.env.*
+!.env.template
+!.env.example
+*.pyc
+CLAUDE.md
+AGENTS.md
+.github/copilot-instructions.md
